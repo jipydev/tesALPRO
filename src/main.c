@@ -16,9 +16,9 @@ int main() {
 
     while (1) {
         clearScreen();
-        printf("==============================\n");
-        printf("    SISTEM POSYANDU TXT\n");
-        printf("==============================\n");
+        printf("===================================================\n");
+        printf("SIPANDU (Sistem Informasi Posyandu Digital Terpadu)\n");
+        printf("===================================================\n");
         printf("1. CRUD Data Warga\n");
         printf("2. Rekam Medis\n");
         printf("3. Cek Stunting Balita\n");
