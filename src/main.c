@@ -20,12 +20,12 @@ int main() {
         printf("SIPANDU (Sistem Informasi Posyandu Digital Terpadu)\n");
         printf("===================================================\n");
         printf("1. CRUD Data Warga\n");
-        printf("2. Rekam Medis\n");
+        printf("2. CRUD Rekam Medis\n");
         printf("3. Cek Stunting Balita\n");
         printf("4. Cek Kesehatan Ibu Hamil\n");
         printf("5. CRUD Jadwal Kegiatan\n");
         printf("6. CRUD Inventaris\n");
-        printf("7. CRUD Keuangan\n");
+        printf("7. CRUD Laporan Keuangan\n");
         printf("0. Keluar\n");
         printf("Pilih menu: ");
         scanf("%d", &pilih);
