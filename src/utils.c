@@ -42,7 +42,7 @@ int inputInt(const char *label) {
         trim(buffer);
 
         if (strlen(buffer) == 0) {
-            printf("⚠ Tidak boleh kosong!\n");
+            printf("Tidak boleh kosong!\n");
             continue;
         }
 
