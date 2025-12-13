@@ -49,7 +49,7 @@ void tambahInv() {
     i.id = id;
     inputString("Nama barang: ", i.barang, sizeof(i.barang));
     i.jumlah = inputInt("Jumlah: ");
-    inputString("Tanggal (YYYY-MM-DD): ", i.tanggal, sizeof(i.tanggal));
+    inputString("Tanggal (contoh: 12-09-2025): ", i.tanggal, sizeof(i.tanggal));
 
     fprintf(f, "%d|%s|%d|%s\n",
             i.id, i.barang, i.jumlah, i.tanggal);
@@ -186,7 +186,7 @@ void cariInvByJumlah() {
 void cariInvByTanggal() {
     clearScreen();
     char cari[20];
-    inputString("Masukkan tanggal (YYYY-MM-DD): ", cari, sizeof(cari));
+    inputString("Masukkan tanggal (contoh: 12-09-2025): ", cari, sizeof(cari));
 
     FILE *f = fopen(FILE_INV, "r");
     if (!f) {

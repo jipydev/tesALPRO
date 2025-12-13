@@ -51,7 +51,7 @@ void tambahKeuangan() {
     k.id = id;
     inputString("Jenis (MASUK/KELUAR): ", k.jenis, sizeof(k.jenis));
     k.nominal = inputInt("Nominal: ");
-    inputString("Tanggal (YYYY-MM-DD): ", k.tanggal, sizeof(k.tanggal));
+    inputString("Tanggal (contoh: 12-09-2025): ", k.tanggal, sizeof(k.tanggal));
     inputString("Keterangan: ", k.keterangan, sizeof(k.keterangan));
 
     fprintf(f, "%d|%s|%d|%s|%s\n",
@@ -157,7 +157,7 @@ void cariKeuanganByJenis() {
 void cariKeuanganByTanggal() {
     clearScreen();
     char cari[20];
-    inputString("Masukkan tanggal (YYYY-MM-DD): ", cari, sizeof(cari));
+    inputString("Masukkan tanggal : ", cari, sizeof(cari));
 
     FILE *f = fopen(FILE_KEUANGAN, "r");
     if (!f) {

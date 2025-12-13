@@ -1,18 +1,236 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "ibu_hamil.h"
 #include "utils.h"
 
-void cekIbuHamil() {
+#define FILE_HAMIL "db/ibu_hamil.txt"
+#define FILE_TMP   "db/tmp_hamil.txt"
+
+typedef struct {
+    int id;
+    char nama[50];
+    int usia_minggu;
+    float berat;
+    int sistolik;
+    int diastolik;
     float hb;
+    char tanggal[20];
+    char status[50];
+} IbuHamil;
 
-    clearScreen();
-    printf("Masukkan kadar HB (g/dL): ");
-    scanf("%f", &hb);
-
-    if (hb < 11)
-        printf("\nHASIL: ANEMIA — Risiko tinggi!\n");
+/* =======================
+   LOGIKA STATUS KESEHATAN
+   ======================= */
+void tentukanStatus(IbuHamil *i) {
+    if (i->hb < 11)
+        strcpy(i->status, "ANEMIA");
+    else if (i->sistolik >= 140 || i->diastolik >= 90)
+        strcpy(i->status, "HIPERTENSI");
     else
-        printf("\nHASIL: NORMAL ✔\n");
+        strcpy(i->status, "NORMAL");
+}
 
+/* =======================
+   TAMBAH DATA
+   ======================= */
+void tambahIbuHamil() {
+    clearScreen();
+    IbuHamil i;
+
+    printf("=== TAMBAH DATA IBU HAMIL ===\n");
+    i.id = inputInt("ID: ");
+    inputString("Nama ibu: ", i.nama, sizeof(i.nama));
+    i.usia_minggu = inputInt("Usia kehamilan (minggu): ");
+    printf("Berat badan (kg): "); scanf("%f", &i.berat);
+    i.sistolik = inputInt("Tekanan sistolik: ");
+    i.diastolik = inputInt("Tekanan diastolik: ");
+    printf("HB (g/dL): "); scanf("%f", &i.hb);
+    inputString("Tanggal (contoh: 12-09-2025): ", i.tanggal, sizeof(i.tanggal));
+
+    tentukanStatus(&i);
+
+    FILE *f = fopen(FILE_HAMIL, "a");
+    if (!f) {
+        printf("Gagal membuka file.\n");
+        pauseScreen();
+        return;
+    }
+
+    fprintf(f, "%d|%s|%d|%.1f|%d|%d|%.1f|%s|%s\n",
+            i.id, i.nama, i.usia_minggu, i.berat,
+            i.sistolik, i.diastolik, i.hb,
+            i.tanggal, i.status);
+
+    fclose(f);
+    printf("Data berhasil disimpan!\n");
     pauseScreen();
+}
+
+/* =======================
+   TAMPILKAN SEMUA
+   ======================= */
+void tampilkanSemuaIbuHamil() {
+    clearScreen();
+    FILE *f = fopen(FILE_HAMIL, "r");
+    if (!f) {
+        printf("Belum ada data.\n");
+        pauseScreen();
+        return;
+    }
+
+    IbuHamil i;
+    printf("=== DATA IBU HAMIL ===\n");
+
+    while (fscanf(f,
+        "%d|%49[^|]|%d|%f|%d|%d|%f|%19[^|]|%49[^\n]\n",
+        &i.id, i.nama, &i.usia_minggu, &i.berat,
+        &i.sistolik, &i.diastolik, &i.hb,
+        i.tanggal, i.status) != EOF) {
+
+        printf("ID:%d | %s | HB:%.1f | TD:%d/%d | %s | %s\n",
+               i.id, i.nama, i.hb,
+               i.sistolik, i.diastolik,
+               i.status, i.tanggal);
+    }
+
+    fclose(f);
+    pauseScreen();
+}
+
+/* =======================
+   CARI BY ID
+   ======================= */
+void cariIbuHamilById() {
+    clearScreen();
+    int id = inputInt("Masukkan ID: ");
+
+    FILE *f = fopen(FILE_HAMIL, "r");
+    IbuHamil i;
+    int found = 0;
+
+    while (fscanf(f,
+        "%d|%49[^|]|%d|%f|%d|%d|%f|%19[^|]|%49[^\n]\n",
+        &i.id, i.nama, &i.usia_minggu, &i.berat,
+        &i.sistolik, &i.diastolik, &i.hb,
+        i.tanggal, i.status) != EOF) {
+
+        if (i.id == id) {
+            printf("\nNama: %s\nHB: %.1f\nTD: %d/%d\nStatus: %s\nTanggal: %s\n",
+                   i.nama, i.hb, i.sistolik, i.diastolik, i.status, i.tanggal);
+            found = 1;
+            break;
+        }
+    }
+
+    fclose(f);
+    if (!found) printf("Data tidak ditemukan.\n");
+    pauseScreen();
+}
+
+/* =======================
+   CARI BY STATUS
+   ======================= */
+void cariIbuHamilByStatus() {
+    clearScreen();
+    char key[20];
+    inputString("Masukkan status (NORMAL/ANEMIA/HIPERTENSI): ",
+                key, sizeof(key));
+
+    FILE *f = fopen(FILE_HAMIL, "r");
+    IbuHamil i;
+    int found = 0;
+
+    while (fscanf(f,
+        "%d|%49[^|]|%d|%f|%d|%d|%f|%19[^|]|%49[^\n]\n",
+        &i.id, i.nama, &i.usia_minggu, &i.berat,
+        &i.sistolik, &i.diastolik, &i.hb,
+        i.tanggal, i.status) != EOF) {
+
+        if (strcmp(i.status, key) == 0) {
+            printf("ID:%d | %s | %s | %s\n",
+                   i.id, i.nama, i.status, i.tanggal);
+            found = 1;
+        }
+    }
+
+    fclose(f);
+    if (!found) printf("Data tidak ditemukan.\n");
+    pauseScreen();
+}
+
+/* =======================
+   CARI BY TANGGAL
+   ======================= */
+void cariIbuHamilByTanggal() {
+    clearScreen();
+    char cari[20];
+    inputString("Masukkan tanggal (contoh: 12-09-2025): ",
+                cari, sizeof(cari));
+
+    FILE *f = fopen(FILE_HAMIL, "r");
+    IbuHamil i;
+    int found = 0;
+
+    while (fscanf(f,
+        "%d|%49[^|]|%d|%f|%d|%d|%f|%19[^|]|%49[^\n]\n",
+        &i.id, i.nama, &i.usia_minggu, &i.berat,
+        &i.sistolik, &i.diastolik, &i.hb,
+        i.tanggal, i.status) != EOF) {
+
+        if (strcmp(i.tanggal, cari) == 0) {
+            printf("ID:%d | %s | %s\n",
+                   i.id, i.nama, i.status);
+            found = 1;
+        }
+    }
+
+    fclose(f);
+    if (!found) printf("Data tidak ditemukan.\n");
+    pauseScreen();
+}
+
+/* =======================
+   SUBMENU LIHAT
+   ======================= */
+void lihatIbuHamil() {
+    int p;
+    do {
+        clearScreen();
+        printf("=== LIHAT DATA IBU HAMIL ===\n");
+        printf("1. Tampilkan Semua\n");
+        printf("2. Cari berdasarkan ID\n");
+        printf("3. Cari berdasarkan Status\n");
+        printf("4. Cari berdasarkan Tanggal\n");
+        printf("0. Kembali\n");
+
+        p = inputInt("Pilih: ");
+
+        switch (p) {
+            case 1: tampilkanSemuaIbuHamil(); break;
+            case 2: cariIbuHamilById(); break;
+            case 3: cariIbuHamilByStatus(); break;
+            case 4: cariIbuHamilByTanggal(); break;
+        }
+    } while (p != 0);
+}
+
+/* =======================
+   MENU UTAMA
+   ======================= */
+void menuIbuHamil() {
+    int p;
+    do {
+        clearScreen();
+        printf("=== MENU CEK IBU HAMIL ===\n");
+        printf("1. Tambah Data\n");
+        printf("2. Lihat Data\n");
+        printf("0. Kembali\n");
+
+        p = inputInt("Pilih: ");
+
+        if (p == 1) tambahIbuHamil();
+        else if (p == 2) lihatIbuHamil();
+
+    } while (p != 0);
 }

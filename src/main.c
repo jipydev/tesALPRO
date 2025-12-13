@@ -22,7 +22,7 @@ int main() {
         printf("1. CRUD Data Warga\n");
         printf("2. CRUD Rekam Medis\n");
         printf("3. Cek Stunting Balita\n");
-        printf("4. Cek Kesehatan Ibu Hamil\n");
+        printf("4. CRUD cek Kesehatan Ibu Hamil\n");
         printf("5. CRUD Jadwal Kegiatan\n");
         printf("6. CRUD Inventaris\n");
         printf("7. CRUD Laporan Keuangan\n");
@@ -34,7 +34,7 @@ int main() {
             case 1: menuWarga(); break;
             case 2: menuRekam(); break;
             case 3: cekStunting(); break;
-            case 4: cekIbuHamil(); break;
+            case 4: menuIbuHamil(); break;
             case 5: menuJadwal(); break;
             case 6: menuInventaris(); break;
             case 7: menuKeuangan(); break;
