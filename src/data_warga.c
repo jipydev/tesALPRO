@@ -27,7 +27,7 @@ void tambahWarga() {
     if (f) {
         while (fscanf(f, "%d|%49[^|]|%d\n", &w.id, w.nama, &w.umur) != EOF) {
             if (w.id == id) {
-                printf("❌ ID sudah ada!\n");
+                printf("ID sudah ada!\n");
                 fclose(f);
                 pauseScreen();
                 return;
@@ -46,7 +46,7 @@ void tambahWarga() {
     fprintf(f, "%d|%s|%d\n", w.id, w.nama, w.umur);
     fclose(f);
 
-    printf("✅ Data berhasil ditambahkan!\n");
+    printf("Data berhasil ditambahkan!\n");
     pauseScreen();
 }
 
@@ -158,7 +158,7 @@ void editWarga() {
     remove(FILE_WARGA);
     rename(FILE_TEMP, FILE_WARGA);
 
-    printf(found ? "✅ Data diupdate!\n" : "❌ ID tidak ditemukan!\n");
+    printf(found ? "Data diupdate!\n" : "ID tidak ditemukan!\n");
     pauseScreen();
 }
 
@@ -187,7 +187,7 @@ void hapusWarga() {
     remove(FILE_WARGA);
     rename(FILE_TEMP, FILE_WARGA);
 
-    printf(found ? "✅ Data dihapus!\n" : "❌ ID tidak ditemukan!\n");
+    printf(found ? "Data dihapus!\n" : "ID tidak ditemukan!\n");
     pauseScreen();
 }
 

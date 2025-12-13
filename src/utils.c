@@ -55,7 +55,7 @@ int inputInt(const char *label) {
         }
 
         if (!valid) {
-            printf("⚠ Input harus ANGKA!\n");
+            printf("Input harus ANGKA!\n");
             continue;
         }
 
