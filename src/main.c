@@ -1,15 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "utils.h"
-#include "data_warga.h"
-#include "rekam_medis.h"
-#include "cek_stunting.h"
-#include "ibu_hamil.h"
-#include "jadwal_kegiatan.h"
-#include "inventaris.h"
-#include "laporan_keuangan.h"
-
 int main() {
     protectFolder();
     int pilih;
@@ -27,8 +15,8 @@ int main() {
         printf("6. CRUD Inventaris\n");
         printf("7. CRUD Laporan Keuangan\n");
         printf("0. Keluar\n");
-        printf("Pilih menu: ");
-        scanf("%d", &pilih);
+
+        pilih = inputInt("Pilih menu: ");
 
         switch (pilih) {
             case 1: menuWarga(); break;
