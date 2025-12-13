@@ -7,234 +7,213 @@
 #define FILE_REKAM "db/rekam_medis.txt"
 #define FILE_TEMP  "db/temp.txt"
 
-void tambahRekamAction() {
+/* ================= TAMBAH ================= */
+void tambahRekam() {
     clearScreen();
-    FILE *f = fopen(FILE_REKAM, "a");
-    if (!f) { printf("Gagal membuka file!\n"); pauseScreen(); return; }
+    printf("=== TAMBAH REKAM MEDIS ===\n");
 
+    int id = inputInt("Masukkan ID Rekam (0 = batal): ");
+    if (id == 0) return;
+
+    FILE *f = fopen(FILE_REKAM, "r");
     Rekam r;
 
-    printf("Nama pasien: ");
-    getchar(); fgets(r.nama, 50, stdin); trim(r.nama);
+    /* Cek ID duplikat */
+    if (f) {
+        while (fscanf(f, "%d|%49[^|]|%99[^\n]\n",
+                       &r.id, r.nama, r.keluhan) != EOF) {
+            if (r.id == id) {
+                printf("ID sudah ada!\n");
+                fclose(f);
+                pauseScreen();
+                return;
+            }
+        }
+        fclose(f);
+    }
 
-    printf("Keluhan: ");
-    fgets(r.keluhan, 100, stdin); trim(r.keluhan);
+    f = fopen(FILE_REKAM, "a");
+    if (!f) return;
 
-    fprintf(f, "%s|%s\n", r.nama, r.keluhan);
+    r.id = id;
+    inputString("Nama Pasien: ", r.nama, sizeof(r.nama));
+    inputString("Keluhan: ", r.keluhan, sizeof(r.keluhan));
+
+    fprintf(f, "%d|%s|%s\n", r.id, r.nama, r.keluhan);
     fclose(f);
 
-    printf("\nRekam medis BERHASIL ditambahkan!\n");
+    printf("Rekam medis berhasil ditambahkan!\n");
     pauseScreen();
 }
 
-void tambahRekam() {
-    int p;
-    do {
-        clearScreen();
-        printf("=== MENU TAMBAH REKAM MEDIS ===\n");
-        printf("1. Tambah Data\n");
-        printf("0. Kembali\n");
-        printf("Pilih: ");
-        scanf("%d", &p);
-
-        if (p == 1) tambahRekamAction();
-
-    } while (p != 0);
-}
-
-/* =======================
-   LIHAT REKAM MEDIS
-   ======================= */
-
+/* ================= LIHAT ================= */
 void tampilkanSemuaRekam() {
     clearScreen();
     FILE *f = fopen(FILE_REKAM, "r");
-    if (!f) { printf("Belum ada data.\n"); pauseScreen(); return; }
-
     Rekam r;
-    printf("=== SEMUA REKAM MEDIS ===\n");
-    while (fscanf(f, "%49[^|]|%99[^\n]\n", r.nama, r.keluhan) != EOF) {
-        printf("Nama: %s | Keluhan: %s\n", r.nama, r.keluhan);
-    }
-    fclose(f);
 
+    if (!f) {
+        printf("Belum ada data.\n");
+        pauseScreen();
+        return;
+    }
+
+    printf("=== DATA REKAM MEDIS ===\n");
+    while (fscanf(f, "%d|%49[^|]|%99[^\n]\n",
+                  &r.id, r.nama, r.keluhan) != EOF) {
+        printf("ID:%d | %s | Keluhan: %s\n", r.id, r.nama, r.keluhan);
+    }
+
+    fclose(f);
+    pauseScreen();
+}
+
+void cariRekamById() {
+    clearScreen();
+    int id = inputInt("Masukkan ID (0 = kembali): ");
+    if (id == 0) return;
+
+    FILE *f = fopen(FILE_REKAM, "r");
+    Rekam r;
+    int found = 0;
+
+    while (f && fscanf(f, "%d|%49[^|]|%99[^\n]\n",
+                       &r.id, r.nama, r.keluhan) != EOF) {
+        if (r.id == id) {
+            printf("Ditemukan:\n");
+            printf("ID:%d\nNama:%s\nKeluhan:%s\n",
+                   r.id, r.nama, r.keluhan);
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found) printf("Data tidak ditemukan.\n");
+    if (f) fclose(f);
     pauseScreen();
 }
 
 void cariRekamByNama() {
     clearScreen();
-    char keyword[50];
-
-    printf("Masukkan nama pasien: ");
-    getchar(); fgets(keyword, 50, stdin);
-    trim(keyword);
+    char key[50];
+    inputString("Masukkan nama pasien: ", key, sizeof(key));
 
     FILE *f = fopen(FILE_REKAM, "r");
-    if (!f) { printf("Belum ada data.\n"); pauseScreen(); return; }
-
     Rekam r;
     int found = 0;
 
-    printf("\n=== HASIL PENCARIAN ===\n");
-    while (fscanf(f, "%49[^|]|%99[^\n]\n", r.nama, r.keluhan) != EOF) {
-        if (strstr(r.nama, keyword) != NULL) {
-            printf("Nama: %s | Keluhan: %s\n", r.nama, r.keluhan);
+    while (f && fscanf(f, "%d|%49[^|]|%99[^\n]\n",
+                       &r.id, r.nama, r.keluhan) != EOF) {
+        if (strstr(r.nama, key)) {
+            printf("ID:%d | %s | Keluhan:%s\n",
+                   r.id, r.nama, r.keluhan);
             found = 1;
         }
     }
 
-    if (!found) printf("Tidak ditemukan data '%s'.\n", keyword);
-
-    fclose(f);
+    if (!found) printf("Tidak ditemukan.\n");
+    if (f) fclose(f);
     pauseScreen();
 }
 
 void lihatRekam() {
     int p;
-
     do {
         clearScreen();
-        printf("=== MENU LIHAT REKAM MEDIS ===\n");
+        printf("=== LIHAT REKAM MEDIS ===\n");
         printf("1. Tampilkan Semua\n");
-        printf("2. Cari Nama\n");
+        printf("2. Cari berdasarkan ID\n");
+        printf("3. Cari berdasarkan Nama\n");
         printf("0. Kembali\n");
-        printf("Pilih: ");
-        scanf("%d", &p);
+
+        p = inputInt("Pilih: ");
 
         if (p == 1) tampilkanSemuaRekam();
-        if (p == 2) cariRekamByNama();
+        else if (p == 2) cariRekamById();
+        else if (p == 3) cariRekamByNama();
 
     } while (p != 0);
 }
 
-/* =======================
-   EDIT REKAM MEDIS
-   ======================= */
-
-void editRekamAction() {
+/* ================= EDIT ================= */
+void editRekam() {
     clearScreen();
-    char cari[50];
-
-    printf("Nama pasien yang ingin diedit: ");
-    getchar(); fgets(cari, 50, stdin); trim(cari);
+    int id = inputInt("Masukkan ID (0 = batal): ");
+    if (id == 0) return;
 
     FILE *f = fopen(FILE_REKAM, "r");
     FILE *tmp = fopen(FILE_TEMP, "w");
-
-    if (!f || !tmp) { printf("Gagal membuka file.\n"); pauseScreen(); return; }
-
     Rekam r;
     int found = 0;
 
-    while (fscanf(f, "%49[^|]|%99[^\n]\n", r.nama, r.keluhan) != EOF) {
-        if (strcmp(r.nama, cari) == 0) {
+    while (f && fscanf(f, "%d|%49[^|]|%99[^\n]\n",
+                       &r.id, r.nama, r.keluhan) != EOF) {
+        if (r.id == id) {
             found = 1;
-            printf("Keluhan baru: ");
-            fgets(r.keluhan, 100, stdin); trim(r.keluhan);
+            inputString("Nama baru: ", r.nama, sizeof(r.nama));
+            inputString("Keluhan baru: ", r.keluhan, sizeof(r.keluhan));
         }
-        fprintf(tmp, "%s|%s\n", r.nama, r.keluhan);
+        fprintf(tmp, "%d|%s|%s\n", r.id, r.nama, r.keluhan);
     }
 
-    fclose(f);
+    if (f) fclose(f);
     fclose(tmp);
+
     remove(FILE_REKAM);
     rename(FILE_TEMP, FILE_REKAM);
 
-    if (found) printf("Rekam medis berhasil diubah!\n");
-    else printf("Nama tidak ditemukan.\n");
-
+    printf(found ? "Data diupdate!\n" : "ID tidak ditemukan!\n");
     pauseScreen();
 }
 
-void editRekam() {
-    int p;
-
-    do {
-        clearScreen();
-        printf("=== MENU EDIT REKAM MEDIS ===\n");
-        printf("1. Edit Data\n");
-        printf("0. Kembali\n");
-        printf("Pilih: ");
-        scanf("%d", &p);
-
-        if (p == 1) editRekamAction();
-
-    } while (p != 0);
-}
-
-/* =======================
-   HAPUS REKAM MEDIS
-   ======================= */
-
-void hapusRekamAction() {
+/* ================= HAPUS ================= */
+void hapusRekam() {
     clearScreen();
-    char cari[50];
-
-    printf("Nama pasien yang ingin dihapus: ");
-    getchar(); fgets(cari, 50, stdin); trim(cari);
+    int id = inputInt("Masukkan ID (0 = batal): ");
+    if (id == 0) return;
 
     FILE *f = fopen(FILE_REKAM, "r");
     FILE *tmp = fopen(FILE_TEMP, "w");
-
     Rekam r;
     int found = 0;
 
-    while (fscanf(f, "%49[^|]|%99[^\n]\n", r.nama, r.keluhan) != EOF) {
-        if (strcmp(r.nama, cari) == 0) {
+    while (f && fscanf(f, "%d|%49[^|]|%99[^\n]\n",
+                       &r.id, r.nama, r.keluhan) != EOF) {
+        if (r.id == id) {
             found = 1;
             continue;
         }
-        fprintf(tmp, "%s|%s\n", r.nama, r.keluhan);
+        fprintf(tmp, "%d|%s|%s\n", r.id, r.nama, r.keluhan);
     }
 
-    fclose(f);
+    if (f) fclose(f);
     fclose(tmp);
+
     remove(FILE_REKAM);
     rename(FILE_TEMP, FILE_REKAM);
 
-    if (found) printf("Rekam medis berhasil dihapus!\n");
-    else printf("Nama tidak ditemukan.\n");
-
+    printf(found ? "Data dihapus!\n" : "ID tidak ditemukan!\n");
     pauseScreen();
 }
 
-void hapusRekam() {
-    int p;
-
-    do {
-        clearScreen();
-        printf("=== MENU HAPUS REKAM MEDIS ===\n");
-        printf("1. Hapus Data\n");
-        printf("0. Kembali\n");
-        printf("Pilih: ");
-        scanf("%d", &p);
-
-        if (p == 1) hapusRekamAction();
-
-    } while (p != 0);
-}
-
-/* =======================
-   MENU UTAMA REKAM MEDIS
-   ======================= */
-
+/* ================= MENU ================= */
 void menuRekam() {
     int p;
     do {
         clearScreen();
-        printf("=== MENU CRUD REKAM MEDIS ===\n");
-        printf("1. Tambah Rekam\n");
-        printf("2. Lihat Rekam\n");
-        printf("3. Edit Rekam\n");
-        printf("4. Hapus Rekam\n");
+        printf("=== CRUD REKAM MEDIS ===\n");
+        printf("1. Tambah\n");
+        printf("2. Lihat\n");
+        printf("3. Edit\n");
+        printf("4. Hapus\n");
         printf("0. Kembali\n");
-        printf("Pilih: ");
-        scanf("%d", &p);
+
+        p = inputInt("Pilih: ");
 
         if (p == 1) tambahRekam();
-        if (p == 2) lihatRekam();
-        if (p == 3) editRekam();
-        if (p == 4) hapusRekam();
+        else if (p == 2) lihatRekam();
+        else if (p == 3) editRekam();
+        else if (p == 4) hapusRekam();
 
     } while (p != 0);
 }
