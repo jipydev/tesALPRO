@@ -9,9 +9,9 @@
 
 typedef struct {
     int id;
-    char jenis[20];        // MASUK / KELUAR
+    char jenis[20];        
     int nominal;
-    char tanggal[20];     // YYYY-MM-DD
+    char tanggal[20];    
     char keterangan[100];
 } Keuangan;
 
