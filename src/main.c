@@ -33,7 +33,7 @@ int main() {
         switch (pilih) {
             case 1: menuWarga(); break;
             case 2: menuRekam(); break;
-            case 3: cekStunting(); break;
+            case 3: menuStunting(); break;
             case 4: menuIbuHamil(); break;
             case 5: menuJadwal(); break;
             case 6: menuInventaris(); break;
