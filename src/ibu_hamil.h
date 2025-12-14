@@ -1,7 +1,3 @@
-#ifndef HAMIL_H
-#define HAMIL_H
-
-void cekIbuHamil();
 #ifndef IBU_HAMIL_H
 #define IBU_HAMIL_H
 
@@ -19,7 +15,5 @@ void tampilkanSemuaIbuHamil();
 void cariIbuHamilById();
 void cariIbuHamilByStatus();
 void cariIbuHamilByTanggal();
-
-#endif
 
 #endif

@@ -36,21 +36,52 @@ void tentukanStatus(IbuHamil *i) {
    ======================= */
 void tambahIbuHamil() {
     clearScreen();
-    IbuHamil i;
-
     printf("=== TAMBAH DATA IBU HAMIL ===\n");
-    i.id = inputInt("ID: ");
+
+    IbuHamil i;
+    int id = inputInt("ID: ");
+
+    FILE *f = fopen(FILE_HAMIL, "r");
+
+    /* CEK ID DUPLIKAT */
+    if (f) {
+        while (fscanf(f,
+            "%d|%49[^|]|%d|%f|%d|%d|%f|%19[^|]|%49[^\n]\n",
+            &i.id, i.nama, &i.usia_minggu, &i.berat,
+            &i.sistolik, &i.diastolik, &i.hb,
+            i.tanggal, i.status) != EOF) {
+
+            if (i.id == id) {
+                printf("ID sudah terdaftar!\n");
+                fclose(f);
+                pauseScreen();
+                return;
+            }
+        }
+        fclose(f);
+    }
+
+    i.id = id;
     inputString("Nama ibu: ", i.nama, sizeof(i.nama));
     i.usia_minggu = inputInt("Usia kehamilan (minggu): ");
-    printf("Berat badan (kg): "); scanf("%f", &i.berat);
+
+    printf("Berat badan (kg): ");
+    scanf("%f", &i.berat);
+    while (getchar() != '\n');
+
     i.sistolik = inputInt("Tekanan sistolik: ");
     i.diastolik = inputInt("Tekanan diastolik: ");
-    printf("HB (g/dL): "); scanf("%f", &i.hb);
-    inputString("Tanggal (contoh: 12-09-2025): ", i.tanggal, sizeof(i.tanggal));
+
+    printf("HB (g/dL): ");
+    scanf("%f", &i.hb);
+    while (getchar() != '\n');
+
+    inputString("Tanggal (contoh: 12-09-2025): ",
+                i.tanggal, sizeof(i.tanggal));
 
     tentukanStatus(&i);
 
-    FILE *f = fopen(FILE_HAMIL, "a");
+    f = fopen(FILE_HAMIL, "a");
     if (!f) {
         printf("Gagal membuka file.\n");
         pauseScreen();
@@ -63,7 +94,7 @@ void tambahIbuHamil() {
             i.tanggal, i.status);
 
     fclose(f);
-    printf("Data berhasil disimpan!\n");
+    printf("Data berhasil ditambahkan!\n");
     pauseScreen();
 }
 
@@ -106,6 +137,12 @@ void cariIbuHamilById() {
     int id = inputInt("Masukkan ID: ");
 
     FILE *f = fopen(FILE_HAMIL, "r");
+    if (!f) {
+        printf("Belum ada data.\n");
+        pauseScreen();
+        return;
+    }
+
     IbuHamil i;
     int found = 0;
 
@@ -124,7 +161,7 @@ void cariIbuHamilById() {
     }
 
     fclose(f);
-    if (!found) printf("Data tidak ditemukan.\n");
+    if (!found) printf("ID tidak ditemukan.\n");
     pauseScreen();
 }
 
@@ -133,11 +170,17 @@ void cariIbuHamilById() {
    ======================= */
 void cariIbuHamilByStatus() {
     clearScreen();
-    char key[20];
+    char cari[20];
     inputString("Masukkan status (NORMAL/ANEMIA/HIPERTENSI): ",
-                key, sizeof(key));
+                cari, sizeof(cari));
 
     FILE *f = fopen(FILE_HAMIL, "r");
+    if (!f) {
+        printf("Belum ada data.\n");
+        pauseScreen();
+        return;
+    }
+
     IbuHamil i;
     int found = 0;
 
@@ -147,7 +190,7 @@ void cariIbuHamilByStatus() {
         &i.sistolik, &i.diastolik, &i.hb,
         i.tanggal, i.status) != EOF) {
 
-        if (strcmp(i.status, key) == 0) {
+        if (strcmp(i.status, cari) == 0) {
             printf("ID:%d | %s | %s | %s\n",
                    i.id, i.nama, i.status, i.tanggal);
             found = 1;
@@ -169,6 +212,12 @@ void cariIbuHamilByTanggal() {
                 cari, sizeof(cari));
 
     FILE *f = fopen(FILE_HAMIL, "r");
+    if (!f) {
+        printf("Belum ada data.\n");
+        pauseScreen();
+        return;
+    }
+
     IbuHamil i;
     int found = 0;
 
@@ -216,6 +265,101 @@ void lihatIbuHamil() {
 }
 
 /* =======================
+   EDIT DATA
+   ======================= */
+void editIbuHamil() {
+    clearScreen();
+    int id = inputInt("Masukkan ID: ");
+
+    FILE *f = fopen(FILE_HAMIL, "r");
+    FILE *tmp = fopen(FILE_TMP, "w");
+    IbuHamil i;
+    int found = 0;
+
+    while (fscanf(f,
+        "%d|%49[^|]|%d|%f|%d|%d|%f|%19[^|]|%49[^\n]\n",
+        &i.id, i.nama, &i.usia_minggu, &i.berat,
+        &i.sistolik, &i.diastolik, &i.hb,
+        i.tanggal, i.status) != EOF) {
+
+        if (i.id == id) {
+            found = 1;
+            inputString("Nama baru: ", i.nama, sizeof(i.nama));
+            i.usia_minggu = inputInt("Usia kehamilan baru: ");
+
+            printf("Berat badan baru: ");
+            scanf("%f", &i.berat);
+            while (getchar() != '\n');
+
+            i.sistolik = inputInt("Sistolik baru: ");
+            i.diastolik = inputInt("Diastolik baru: ");
+
+            printf("HB baru: ");
+            scanf("%f", &i.hb);
+            while (getchar() != '\n');
+
+            inputString("Tanggal baru: ", i.tanggal, sizeof(i.tanggal));
+            tentukanStatus(&i);
+        }
+
+        fprintf(tmp, "%d|%s|%d|%.1f|%d|%d|%.1f|%s|%s\n",
+                i.id, i.nama, i.usia_minggu, i.berat,
+                i.sistolik, i.diastolik, i.hb,
+                i.tanggal, i.status);
+    }
+
+    fclose(f);
+    fclose(tmp);
+    remove(FILE_HAMIL);
+    rename(FILE_TMP, FILE_HAMIL);
+
+    if (found) printf("Data berhasil diubah!\n");
+    else printf("ID tidak ditemukan.\n");
+
+    pauseScreen();
+}
+
+/* =======================
+   HAPUS DATA
+   ======================= */
+void hapusIbuHamil() {
+    clearScreen();
+    int id = inputInt("Masukkan ID: ");
+
+    FILE *f = fopen(FILE_HAMIL, "r");
+    FILE *tmp = fopen(FILE_TMP, "w");
+    IbuHamil i;
+    int found = 0;
+
+    while (fscanf(f,
+        "%d|%49[^|]|%d|%f|%d|%d|%f|%19[^|]|%49[^\n]\n",
+        &i.id, i.nama, &i.usia_minggu, &i.berat,
+        &i.sistolik, &i.diastolik, &i.hb,
+        i.tanggal, i.status) != EOF) {
+
+        if (i.id == id) {
+            found = 1;
+            continue;
+        }
+
+        fprintf(tmp, "%d|%s|%d|%.1f|%d|%d|%.1f|%s|%s\n",
+                i.id, i.nama, i.usia_minggu, i.berat,
+                i.sistolik, i.diastolik, i.hb,
+                i.tanggal, i.status);
+    }
+
+    fclose(f);
+    fclose(tmp);
+    remove(FILE_HAMIL);
+    rename(FILE_TMP, FILE_HAMIL);
+
+    if (found) printf("Data berhasil dihapus!\n");
+    else printf("ID tidak ditemukan.\n");
+
+    pauseScreen();
+}
+
+/* =======================
    MENU UTAMA
    ======================= */
 void menuIbuHamil() {
@@ -225,12 +369,16 @@ void menuIbuHamil() {
         printf("=== MENU CEK IBU HAMIL ===\n");
         printf("1. Tambah Data\n");
         printf("2. Lihat Data\n");
+        printf("3. Edit Data\n");
+        printf("4. Hapus Data\n");
         printf("0. Kembali\n");
 
         p = inputInt("Pilih: ");
 
         if (p == 1) tambahIbuHamil();
         else if (p == 2) lihatIbuHamil();
+        else if (p == 3) editIbuHamil();
+        else if (p == 4) hapusIbuHamil();
 
     } while (p != 0);
 }
