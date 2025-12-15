@@ -1,13 +1,21 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-void pauseScreen();
-void clearScreen();
-void trim(char *str);
-void protectFolder();
+/* =======================
+   Fungsi Tampilan
+   ======================= */
+void clearScreen();     // membersihkan layar
+void pauseScreen();     // pause sebelum lanjut
 
-/* INPUT AMAN */
-int inputInt(const char *label);
-void inputString(const char *label, char *buffer, int size);
+/* =======================
+   Fungsi Input Aman
+   ======================= */
+int inputInt(const char *label);                      
+void inputString(const char *label, char *output, int max);
+
+/* =======================
+   Manajemen Folder
+   ======================= */
+void protectFolder();   // memastikan folder db/ ada
 
 #endif

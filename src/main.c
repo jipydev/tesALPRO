@@ -11,7 +11,8 @@
 #include "laporan_keuangan.h"
 
 int main() {
-    protectFolder();
+    protectFolder();   // memastikan folder db/ ada
+
     int pilih;
 
     while (1) {
@@ -45,4 +46,3 @@ int main() {
         }
     }
 }
-
