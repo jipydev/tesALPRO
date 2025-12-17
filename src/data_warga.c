@@ -5,15 +5,45 @@
 #include "utils.h"
 
 #define FILE_WARGA "db/data_warga.txt"
-#define FILE_TEMP  "db/temp.txt"
 
-typedef struct {
-    int id;
-    char nama[50];
-    int umur;
-} Warga;
+//ARRAY OF STRUCT
+Warga warga[MAX_WARGA];
+int jumlahWarga = 0;
 
-/* ================= TAMBAH ================= */
+/* ===== LOAD ===== */
+void loadDataWarga() {
+    FILE *f = fopen(FILE_WARGA, "r");
+    jumlahWarga = 0;
+
+    if (!f) return;
+
+    while (jumlahWarga < MAX_WARGA &&
+           fscanf(f, "%d|%49[^|]|%99[^|]|%d\n",
+                  &warga[jumlahWarga].id,
+                  warga[jumlahWarga].nama,
+                  warga[jumlahWarga].alamat,
+                  &warga[jumlahWarga].umur) == 4) {
+        jumlahWarga++;
+    }
+    fclose(f);
+}
+
+/* ===== SAVE ===== */
+void saveDataWarga() {
+    FILE *f = fopen(FILE_WARGA, "w");
+    if (!f) return;
+
+    for (int i = 0; i < jumlahWarga; i++) {
+        fprintf(f, "%d|%s|%s|%d\n",
+                warga[i].id,
+                warga[i].nama,
+                warga[i].alamat,
+                warga[i].umur);
+    }
+    fclose(f);
+}
+
+/* ===== TAMBAH ===== */
 void tambahWarga() {
     clearScreen();
     printf("=== TAMBAH DATA WARGA ===\n");
@@ -21,182 +51,172 @@ void tambahWarga() {
     int id = inputInt("Masukkan ID (0 = batal): ");
     if (id == 0) return;
 
-    FILE *f = fopen(FILE_WARGA, "r");
-    Warga w;
-
-    if (f) {
-        while (fscanf(f, "%d|%49[^|]|%d\n", &w.id, w.nama, &w.umur) != EOF) {
-            if (w.id == id) {
-                printf("ID sudah ada!\n");
-                fclose(f);
-                pauseScreen();
-                return;
-            }
+    for (int i = 0; i < jumlahWarga; i++) {
+        if (warga[i].id == id) {
+            printf("ID sudah terdaftar!\n");
+            pauseScreen();
+            return;
         }
-        fclose(f);
     }
 
-    f = fopen(FILE_WARGA, "a");
-    if (!f) return;
-
+    Warga w;
     w.id = id;
-    inputString("Nama: ", w.nama, sizeof(w.nama));
-    w.umur = inputInt("Umur: ");
+    inputString("Nama   : ", w.nama, sizeof(w.nama));
+    inputString("Alamat : ", w.alamat, sizeof(w.alamat));
+    w.umur = inputInt("Umur   : ");
 
-    fprintf(f, "%d|%s|%d\n", w.id, w.nama, w.umur);
-    fclose(f);
+    w.nama[strcspn(w.nama, "\n")] = 0;
+    w.alamat[strcspn(w.alamat, "\n")] = 0;
+
+    warga[jumlahWarga++] = w;
+    saveDataWarga();
 
     printf("Data berhasil ditambahkan!\n");
     pauseScreen();
 }
 
-/* ================= LIHAT ================= */
+/* ===== SORT + TAMPIL ===== */
 void tampilkanSemuaWarga() {
     clearScreen();
-    FILE *f = fopen(FILE_WARGA, "r");
-    Warga w;
 
-    if (!f) {
+    if (jumlahWarga == 0) {
         printf("Belum ada data.\n");
         pauseScreen();
         return;
     }
 
-    printf("=== DATA WARGA ===\n");
-    while (fscanf(f, "%d|%49[^|]|%d\n", &w.id, w.nama, &w.umur) != EOF) {
-        printf("ID:%d | %s | Umur:%d\n", w.id, w.nama, w.umur);
-    }
-    fclose(f);
-    pauseScreen();
-}
-
-void cariWargaById() {
-    clearScreen();
-    int id = inputInt("Masukkan ID (0 = kembali): ");
-    if (id == 0) return;
-
-    FILE *f = fopen(FILE_WARGA, "r");
-    Warga w;
-    int found = 0;
-
-    while (f && fscanf(f, "%d|%49[^|]|%d\n", &w.id, w.nama, &w.umur) != EOF) {
-        if (w.id == id) {
-            printf("Ditemukan:\nID:%d\nNama:%s\nUmur:%d\n", w.id, w.nama, w.umur);
-            found = 1;
-            break;
+//Bubble Sort
+    for (int i = 0; i < jumlahWarga - 1; i++) {
+        for (int j = 0; j < jumlahWarga - i - 1; j++) {
+            if (strcmp(warga[j].nama, warga[j + 1].nama) > 0) {
+                Warga tmp = warga[j];
+                warga[j] = warga[j + 1];
+                warga[j + 1] = tmp;
+            }
         }
     }
 
-    if (!found) printf("Data tidak ditemukan.\n");
-    if (f) fclose(f);
+    printf("=== DATA WARGA ===\n");
+    for (int i = 0; i < jumlahWarga; i++) {
+        printf("ID:%d | %s | %s | Umur:%d\n",
+               warga[i].id,
+               warga[i].nama,
+               warga[i].alamat,
+               warga[i].umur);
+    }
+    pauseScreen();
+}
+
+/* ===== SEARCH ===== */
+void cariWargaById() {
+    clearScreen();
+    int id = inputInt("Masukkan ID: ");
+//Sequential Search
+    for (int i = 0; i < jumlahWarga; i++) {
+        if (warga[i].id == id) {
+            printf("ID:%d\nNama:%s\nAlamat:%s\nUmur:%d\n",
+                   warga[i].id,
+                   warga[i].nama,
+                   warga[i].alamat,
+                   warga[i].umur);
+            pauseScreen();
+            return;
+        }
+    }
+    printf("Data tidak ditemukan.\n");
     pauseScreen();
 }
 
 void cariWargaByNama() {
     clearScreen();
     char key[50];
-    inputString("Masukkan nama: ", key, sizeof(key));
+    inputString("Nama: ", key, sizeof(key));
+    key[strcspn(key, "\n")] = 0;
 
-    FILE *f = fopen(FILE_WARGA, "r");
-    Warga w;
     int found = 0;
-
-    while (f && fscanf(f, "%d|%49[^|]|%d\n", &w.id, w.nama, &w.umur) != EOF) {
-        if (strstr(w.nama, key)) {
-            printf("ID:%d | %s | Umur:%d\n", w.id, w.nama, w.umur);
+    for (int i = 0; i < jumlahWarga; i++) {
+        if (strstr(warga[i].nama, key)) {
+            printf("ID:%d | %s | %s | %d\n",
+                   warga[i].id,
+                   warga[i].nama,
+                   warga[i].alamat,
+                   warga[i].umur);
             found = 1;
         }
     }
-
     if (!found) printf("Tidak ditemukan.\n");
-    if (f) fclose(f);
     pauseScreen();
 }
 
+/* ===== EDIT ===== */
+void editWarga() {
+    clearScreen();
+    int id = inputInt("Masukkan ID: ");
+
+    for (int i = 0; i < jumlahWarga; i++) {
+        if (warga[i].id == id) {
+            inputString("Nama baru   : ", warga[i].nama, sizeof(warga[i].nama));
+            inputString("Alamat baru : ", warga[i].alamat, sizeof(warga[i].alamat));
+            warga[i].umur = inputInt("Umur baru   : ");
+
+            warga[i].nama[strcspn(warga[i].nama, "\n")] = 0;
+            warga[i].alamat[strcspn(warga[i].alamat, "\n")] = 0;
+
+            saveDataWarga();
+            printf("Data diperbarui!\n");
+            pauseScreen();
+            return;
+        }
+    }
+    printf("ID tidak ditemukan.\n");
+    pauseScreen();
+}
+
+/* ===== HAPUS ===== */
+void hapusWarga() {
+    clearScreen();
+    int id = inputInt("Masukkan ID: ");
+
+    for (int i = 0; i < jumlahWarga; i++) {
+        if (warga[i].id == id) {
+            for (int j = i; j < jumlahWarga - 1; j++) {
+                warga[j] = warga[j + 1];
+            }
+            jumlahWarga--;
+            saveDataWarga();
+            printf("Data dihapus!\n");
+            pauseScreen();
+            return;
+        }
+    }
+    printf("ID tidak ditemukan.\n");
+    pauseScreen();
+}
+
+/* ===== MENU ===== */
 void lihatWarga() {
     int p;
     do {
         clearScreen();
-        printf("=== LIHAT DATA WARGA ===\n");
         printf("1. Tampilkan Semua\n");
         printf("2. Cari ID\n");
         printf("3. Cari Nama\n");
         printf("0. Kembali\n");
-
         p = inputInt("Pilih: ");
 
         if (p == 1) tampilkanSemuaWarga();
         else if (p == 2) cariWargaById();
         else if (p == 3) cariWargaByNama();
-
     } while (p != 0);
 }
 
-/* ================= EDIT ================= */
-void editWarga() {
-    clearScreen();
-    int id = inputInt("Masukkan ID (0 = batal): ");
-    if (id == 0) return;
-
-    FILE *f = fopen(FILE_WARGA, "r");
-    FILE *tmp = fopen(FILE_TEMP, "w");
-    Warga w;
-    int found = 0;
-
-    while (f && fscanf(f, "%d|%49[^|]|%d\n", &w.id, w.nama, &w.umur) != EOF) {
-        if (w.id == id) {
-            found = 1;
-            inputString("Nama baru: ", w.nama, sizeof(w.nama));
-            w.umur = inputInt("Umur baru: ");
-        }
-        fprintf(tmp, "%d|%s|%d\n", w.id, w.nama, w.umur);
-    }
-
-    if (f) fclose(f);
-    fclose(tmp);
-
-    remove(FILE_WARGA);
-    rename(FILE_TEMP, FILE_WARGA);
-
-    printf(found ? "Data diupdate!\n" : "ID tidak ditemukan!\n");
-    pauseScreen();
-}
-
-/* ================= HAPUS ================= */
-void hapusWarga() {
-    clearScreen();
-    int id = inputInt("Masukkan ID (0 = batal): ");
-    if (id == 0) return;
-
-    FILE *f = fopen(FILE_WARGA, "r");
-    FILE *tmp = fopen(FILE_TEMP, "w");
-    Warga w;
-    int found = 0;
-
-    while (f && fscanf(f, "%d|%49[^|]|%d\n", &w.id, w.nama, &w.umur) != EOF) {
-        if (w.id == id) {
-            found = 1;
-            continue;
-        }
-        fprintf(tmp, "%d|%s|%d\n", w.id, w.nama, w.umur);
-    }
-
-    if (f) fclose(f);
-    fclose(tmp);
-
-    remove(FILE_WARGA);
-    rename(FILE_TEMP, FILE_WARGA);
-
-    printf(found ? "Data dihapus!\n" : "ID tidak ditemukan!\n");
-    pauseScreen();
-}
-
-/* ================= MENU ================= */
 void menuWarga() {
+    loadDataWarga();
+
     int p;
     do {
         clearScreen();
-        printf("=== CRUD DATA WARGA ===\n");
+        printf("=== DATA WARGA ===\n");
         printf("1. Tambah\n");
         printf("2. Lihat\n");
         printf("3. Edit\n");
@@ -209,6 +229,5 @@ void menuWarga() {
         else if (p == 2) lihatWarga();
         else if (p == 3) editWarga();
         else if (p == 4) hapusWarga();
-
     } while (p != 0);
 }
