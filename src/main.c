@@ -11,8 +11,6 @@
 #include "laporan_keuangan.h"
 
 int main() {
-    protectFolder();   // memastikan folder db/ ada
-
     int pilih;
 
     while (1) {
@@ -23,7 +21,7 @@ int main() {
         printf("1. Data Warga\n");
         printf("2. Rekam Medis\n");
         printf("3. Cek Stunting Balita\n");
-        printf("4. cek Kesehatan Ibu Hamil\n");
+        printf("4. Cek Kesehatan Ibu Hamil\n");
         printf("5. Jadwal Kegiatan\n");
         printf("6. Inventaris\n");
         printf("7. Laporan Keuangan\n");
